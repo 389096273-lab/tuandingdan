@@ -66,24 +66,21 @@
     </style>
 </head>
 <body class="max-w-md mx-auto min-h-screen pb-8">
-    <!-- 顶部状态栏模拟 -->
-    <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800 bg-pageBg">
-        <span>6:05</span>
-        <div class="flex gap-3">
-            <i class="fa fa-motorcycle"></i>
-            <i class="fa fa-motorcycle"></i>
-            <i class="fa fa-motorcycle"></i>
-            <i class="fa fa-square-o"></i>
-        </div>
-        <div class="flex gap-1">
-            <i class="fa fa-wifi"></i>
-            <i class="fa fa-battery-full"></i>
+        <!-- 顶部状态栏模拟 -->
+    <div class="flex justify-between items-center px-6 py-2 text-sm text-gray-800 bg-white">
+        <span class="font-medium text-base">9:41</span>
+        <div class="flex items-center gap-1.5">
+            <i class="fa fa-signal text-xs"></i>
+            <i class="fa fa-wifi text-xs"></i>
+            <i class="fa fa-battery-full text-base"></i>
         </div>
     </div>
 
     <!-- 头部导航 -->
     <div class="flex items-center px-4 py-3 bg-pageBg">
-        <i class="fa fa-angle-left text-2xl text-gray-800 cursor-pointer" onclick="goBack()"></i>
+        <a href="dindan.html" class="flex items-center justify-center w-8 h-8 -ml-2 text-gray-800 no-underline">
+            <i class="fa fa-angle-left text-2xl"></i>
+        </a>
         <h1 class="text-2xl font-medium flex-1 text-center -ml-6">订单详情</h1>
     </div>
 
@@ -286,18 +283,16 @@
             <div class="section-body">
                 <div class="info-row">
                     <span class="text-gray-500 text-base">司机报销费用</span>
-                    <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='driver-reimburse.html'">
+                    <div class="flex items-center gap-2 cursor-pointer" onclick="showCostDetailModal('driver')">
                         <span class="text-costRed text-base underline decoration-dotted">¥150 元</span>
                         <span class="text-xs text-green-500">已结算</span>
-                        <i class="fa fa-angle-right text-gray-400 text-xs"></i>
                     </div>
                 </div>
                 <div class="info-row">
                     <span class="text-gray-500 text-base">订单其他费用</span>
-                    <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='order-other-cost.html'">
+                    <div class="flex items-center gap-2 cursor-pointer" onclick="showCostDetailModal('other')">
                         <span class="text-costRed text-base underline decoration-dotted">¥88 元</span>
                         <span class="text-xs text-green-500">已结算</span>
-                        <i class="fa fa-angle-right text-gray-400 text-xs"></i>
                     </div>
                 </div>
                 <div class="info-row">
@@ -305,10 +300,9 @@
                         <span class="text-gray-500 text-base">月度摊销费用</span>
                         <span class="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center cursor-pointer" onclick="showAmortizeTip()">?</span>
                     </div>
-                    <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='monthly-amortization.html'">
+                    <div class="flex items-center gap-2 cursor-pointer" onclick="showCostDetailModal('amortization')">
                         <span class="text-costRed text-base underline decoration-dotted">¥68 元</span>
                         <span class="text-xs text-green-500">已结算</span>
-                        <i class="fa fa-angle-right text-gray-400 text-xs"></i>
                     </div>
                 </div>
             </div>
@@ -323,6 +317,18 @@
                 </div>
                 <div class="mt-4 text-right">
                     <span class="text-primary text-base cursor-pointer" onclick="hideAmortizeTip()">知道了</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 费用明细弹窗 -->
+        <div id="costDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center px-6" onclick="hideCostDetailModal(event)">
+            <div class="bg-white rounded-2xl p-5 max-w-sm w-full" onclick="event.stopPropagation()">
+                <div class="flex justify-between items-center mb-4">
+                    <div id="costDetailTitle" class="text-gray-900 text-lg font-semibold">费用明细</div>
+                    <i class="fa fa-times text-gray-400 text-lg cursor-pointer" onclick="hideCostDetailModal()"></i>
+                </div>
+                <div id="costDetailContent">
                 </div>
             </div>
         </div>
@@ -390,6 +396,67 @@
             }
         }
 
+        function showCostDetailModal(type) {
+            const modal = document.getElementById('costDetailModal');
+            const title = document.getElementById('costDetailTitle');
+            const content = document.getElementById('costDetailContent');
+
+            let items = [];
+            let total = 0;
+
+            if (type === 'driver') {
+                title.textContent = '司机报销费用';
+                items = [
+                    { name: '劳务费', amount: 80 },
+                    { name: '信息开票费', amount: 40 },
+                    { name: '装卸过磅费', amount: 30 }
+                ];
+                total = 150;
+            } else if (type === 'other') {
+                title.textContent = '订单其他费用';
+                items = [
+                    { name: '劳务费', amount: 30 },
+                    { name: '充电费', amount: 28 },
+                    { name: '加油费', amount: 30 }
+                ];
+                total = 88;
+            } else if (type === 'amortization') {
+                title.textContent = '月度摊销费用';
+                items = [
+                    { name: '修车费', amount: 30 },
+                    { name: '税费保险', amount: 28 },
+                    { name: '其他', amount: 10 }
+                ];
+                total = 68;
+            }
+
+            let html = '';
+            items.forEach((item, index) => {
+                const borderClass = index < items.length - 1 ? 'border-b border-gray-100' : '';
+                html += `
+                    <div class="flex justify-between items-center py-3 ${borderClass}">
+                        <span class="text-gray-600 text-base">${item.name}</span>
+                        <span class="text-costRed text-base font-medium">¥${item.amount} 元</span>
+                    </div>
+                `;
+            });
+            html += `
+                <div class="flex justify-between items-center pt-4 mt-2 border-t border-gray-200">
+                    <span class="text-gray-900 text-base font-medium">合计</span>
+                    <span class="text-costRed text-xl font-bold">¥${total} 元</span>
+                </div>
+            `;
+
+            content.innerHTML = html;
+            modal.classList.remove('hidden');
+        }
+
+        function hideCostDetailModal(event) {
+            if (!event || event.target.id === 'costDetailModal') {
+                document.getElementById('costDetailModal').classList.add('hidden');
+            }
+        }
+
         function showImageModal(type) {
             const modal = document.getElementById('imageModal');
             const title = document.getElementById('imageModalTitle');
@@ -399,15 +466,6 @@
                 title.textContent = '装货单据（32.5 吨）';
                 content.innerHTML = `
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-                            <i class="fa fa-file-image-o text-gray-400 text-4xl"></i>
-                        </div>
-                        <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-                            <i class="fa fa-plus text-gray-400 text-2xl"></i>
-                        </div>
-                    </div>
-                    <div class="text-gray-500 text-sm mt-3">公里数（128 公里）</div>
-                    <div class="grid grid-cols-2 gap-3 mt-2">
                         <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
                             <i class="fa fa-file-image-o text-gray-400 text-4xl"></i>
                         </div>

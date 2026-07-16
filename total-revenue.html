@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -39,24 +39,19 @@
     </style>
 </head>
 <body class="max-w-md mx-auto min-h-screen bg-white relative pb-20">
-    <!-- 顶部状态栏模拟 -->
-    <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800">
-        <span>4:02</span>
-        <div class="flex gap-3">
-            <i class="fa fa-motorcycle"></i>
-            <i class="fa fa-motorcycle"></i>
-            <i class="fa fa-motorcycle"></i>
-            <i class="fa fa-square-o"></i>
-        </div>
-        <div class="flex gap-1">
-            <i class="fa fa-wifi"></i>
-            <i class="fa fa-battery-full"></i>
+            <!-- 顶部状态栏模拟 -->
+    <div class="flex justify-between items-center px-6 py-2 text-sm text-gray-800 bg-white">
+        <span class="font-medium text-base">9:41</span>
+        <div class="flex items-center gap-1.5">
+            <i class="fa fa-signal text-xs"></i>
+            <i class="fa fa-wifi text-xs"></i>
+            <i class="fa fa-battery-full text-base"></i>
         </div>
     </div>
 
     <!-- 头部导航 -->
     <div class="flex items-center px-4 py-3 border-b border-gray-100">
-        <i class="fa fa-angle-left text-xl mr-3 text-gray-800" onclick="history.back()"></i>
+        <a href="dindan.html" class="flex items-center justify-center w-8 h-8 -ml-2 text-gray-800 no-underline"><i class="fa fa-angle-left text-2xl"></i></a>
         <h1 class="text-xl font-medium flex-1 text-center pr-8">总收益</h1>
     </div>
 
@@ -192,7 +187,7 @@
     </div>
 
     <script>
-        const regionData = {
+
             "北京市": {
                 "北京市": ["东城区", "西城区", "朝阳区", "海淀区", "丰台区", "石景山区", "通州区", "昌平区", "大兴区"]
             },
@@ -408,7 +403,15 @@
             }
         };
 
-        function initCascade(prefix) {
+        
+        function goBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'dindan.html';
+            }
+        }
+function initCascade(prefix) {
             const provinceSelect = document.getElementById(prefix + 'Province');
             const citySelect = document.getElementById(prefix + 'City');
             const districtSelect = document.getElementById(prefix + 'District');
