@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单详情</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        profitGreen: '#00bb66',
+                        costRed: '#ee4466',
+                        pageBg: '#f3f4f6',
+                        sectionHeaderBg: '#f3f4f6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f3f4f6;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .info-card {
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .section-header {
+            background-color: #f3f4f6;
+            padding: 14px 16px;
+        }
+        .section-body {
+            padding: 4px 16px;
+        }
+        .info-row {
+            padding: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .info-row + .info-row {
+            border-top: 1px solid #f3f4f6;
+        }
+        .step-line {
+            position: relative;
+        }
+        .step-line::before {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: #d1d5db;
+            z-index: 0;
+        }
+        .step-line.done::before {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body class="max-w-md mx-auto min-h-screen pb-8">
+    <!-- 顶部状态栏模拟 -->
+    <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800 bg-pageBg">
+        <span>6:05</span>
+        <div class="flex gap-3">
+            <i class="fa fa-motorcycle"></i>
+            <i class="fa fa-motorcycle"></i>
+            <i class="fa fa-motorcycle"></i>
+            <i class="fa fa-square-o"></i>
+        </div>
+        <div class="flex gap-1">
+            <i class="fa fa-wifi"></i>
+            <i class="fa fa-battery-full"></i>
+        </div>
+    </div>
+
+    <!-- 头部导航 -->
+    <div class="flex items-center px-4 py-3 bg-pageBg">
+        <i class="fa fa-angle-left text-2xl text-gray-800 cursor-pointer" onclick="goBack()"></i>
+        <h1 class="text-2xl font-medium flex-1 text-center -ml-6">订单详情</h1>
+    </div>
+
+    <div class="px-4 pb-4 space-y-3">
+        <!-- 订单号 & 状态 & 进度条 -->
+        <div class="bg-white rounded-2xl p-5">
+            <div class="flex justify-between items-center mb-6">
+                <div class="text-primary text-2xl font-semibold">DD-260715-003</div>
+                <div class="bg-primary text-white px-5 py-1.5 rounded-full text-base font-medium">待评价</div>
+            </div>
+            <!-- 步骤条 -->
+            <div class="flex justify-between items-start relative px-2">
+                <div class="flex flex-col items-center z-10 flex-1 relative">
+                    <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center mb-2">
+                        <i class="fa fa-check text-sm"></i>
+                    </div>
+                    <div class="absolute top-4 left-1/2 w-full h-0.5 bg-primary -z-0 ml-4"></div>
+                    <span class="text-gray-500 text-sm">待提货</span>
+                </div>
+                <div class="flex flex-col items-center z-10 flex-1 relative">
+                    <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center mb-2">
+                        <i class="fa fa-check text-sm"></i>
+                    </div>
+                    <div class="absolute top-4 left-1/2 w-full h-0.5 bg-gray-300 -z-0 ml-4"></div>
+                    <span class="text-gray-500 text-sm">待卸货</span>
+                </div>
+                <div class="flex flex-col items-center z-10 flex-1 relative">
+                    <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center mb-2 text-sm font-medium">3</div>
+                    <div class="absolute top-4 left-1/2 w-full h-0.5 bg-gray-300 -z-0 ml-4"></div>
+                    <span class="text-gray-500 text-sm">待评价</span>
+                </div>
+                <div class="flex flex-col items-center z-10 flex-1">
+                    <div class="w-8 h-8 rounded-full border-2 border-gray-300 text-gray-400 flex items-center justify-center mb-2 text-sm font-medium">4</div>
+                    <span class="text-gray-500 text-sm">已完成</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 货物信息 -->
+        <div class="info-card">
+            <div class="section-header">
+                <span class="text-gray-900 text-lg font-semibold">货物信息</span>
+            </div>
+            <div class="section-body">
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">车牌号</span>
+                    <span class="text-gray-800 text-base">京D32j90</span>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">货物名称</span>
+                    <span class="text-gray-800 text-base">砂石料</span>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">货物规格</span>
+                    <span class="text-gray-800 text-base">中粗砂</span>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">货运单号</span>
+                    <span class="text-gray-800 text-base">HY20260715003</span>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">备注</span>
+                    <span class="text-gray-800 text-base">加急配送</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 运输信息 -->
+        <div class="info-card">
+            <div class="section-header">
+                <span class="text-gray-900 text-lg font-semibold">运输信息</span>
+            </div>
+            <div class="section-body">
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">调度员</span>
+                    <div class="text-right">
+                        <div class="text-gray-800 text-base">王调度</div>
+                        <div class="text-gray-500 text-sm">13800138001</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">收货人</span>
+                    <div class="text-right">
+                        <div class="text-gray-800 text-base">李总</div>
+                        <div class="text-gray-500 text-sm">13800138002</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">发货人</span>
+                    <div class="text-right">
+                        <div class="text-gray-800 text-base">张经理</div>
+                        <div class="text-gray-500 text-sm">13800138003</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 运费信息 -->
+        <div class="info-card">
+            <div class="section-header">
+                <span class="text-gray-900 text-lg font-semibold">运费信息</span>
+            </div>
+            <div class="section-body">
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">计价方式</span>
+                    <span class="text-gray-800 text-base">单价 120 元/吨</span>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">装货重量（结算）</span>
+                    <span class="text-primary text-base font-medium cursor-pointer underline decoration-dotted" onclick="showImageModal('loading')">32.5 吨</span>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">卸货重量（结算）</span>
+                    <span class="text-primary text-base font-medium cursor-pointer underline decoration-dotted" onclick="showImageModal('unloading')">32.3 吨</span>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">运费金额</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-primary text-base font-semibold">¥3876</span>
+                        <span class="text-xs text-green-500">已结算</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">结算方式</span>
+                    <span class="text-gray-800 text-base">月结</span>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">备注</span>
+                    <span class="text-gray-800 text-base">按卸货重量结算</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 装货信息 -->
+        <div class="info-card">
+            <div class="section-header flex justify-between items-center">
+                <span class="text-gray-900 text-lg font-semibold">装货信息</span>
+                <span class="text-primary text-base">修改</span>
+            </div>
+            <div class="section-body pb-3">
+                <div class="py-3">
+                    <div class="text-gray-500 text-base mb-3">装货单据（32.5 吨）</div>
+                    <div class="flex gap-2">
+                        <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-file-image-o text-gray-400 text-2xl"></i>
+                        </div>
+                        <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-plus text-gray-400 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="py-3 border-t border-gray-100">
+                    <div class="text-gray-500 text-base mb-3">公里数（128 公里）</div>
+                    <div class="flex gap-2">
+                        <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-file-image-o text-gray-400 text-2xl"></i>
+                        </div>
+                        <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-plus text-gray-400 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">备注</span>
+                    <span class="text-gray-800 text-base">装货地：东沙场</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卸货信息 -->
+        <div class="info-card">
+            <div class="section-header flex justify-between items-center">
+                <span class="text-gray-900 text-lg font-semibold">卸货信息</span>
+                <span class="text-primary text-base">修改</span>
+            </div>
+            <div class="section-body pb-3">
+                <div class="py-3">
+                    <div class="text-gray-500 text-base mb-3">卸货单据（32.3 吨）</div>
+                    <div class="flex gap-2">
+                        <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-file-image-o text-gray-400 text-2xl"></i>
+                        </div>
+                        <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-plus text-gray-400 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">备注</span>
+                    <span class="text-gray-800 text-base">卸货地：西工地</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 费用信息 -->
+        <div class="info-card">
+            <div class="section-header">
+                <span class="text-gray-900 text-lg font-semibold">费用信息</span>
+            </div>
+            <div class="section-body">
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">司机报销费用</span>
+                    <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='driver-reimburse.html'">
+                        <span class="text-costRed text-base underline decoration-dotted">¥150 元</span>
+                        <span class="text-xs text-green-500">已结算</span>
+                        <i class="fa fa-angle-right text-gray-400 text-xs"></i>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-500 text-base">订单其他费用</span>
+                    <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='order-other-cost.html'">
+                        <span class="text-costRed text-base underline decoration-dotted">¥88 元</span>
+                        <span class="text-xs text-green-500">已结算</span>
+                        <i class="fa fa-angle-right text-gray-400 text-xs"></i>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="flex items-center gap-1">
+                        <span class="text-gray-500 text-base">月度摊销费用</span>
+                        <span class="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center cursor-pointer" onclick="showAmortizeTip()">?</span>
+                    </div>
+                    <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='monthly-amortization.html'">
+                        <span class="text-costRed text-base underline decoration-dotted">¥68 元</span>
+                        <span class="text-xs text-green-500">已结算</span>
+                        <i class="fa fa-angle-right text-gray-400 text-xs"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 月度摊销费用解释弹窗 -->
+        <div id="amortizeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center px-6" onclick="hideAmortizeTip(event)">
+            <div class="bg-white rounded-2xl p-5 max-w-sm w-full" onclick="event.stopPropagation()">
+                <div class="text-gray-900 text-lg font-semibold mb-3">月度摊销费用</div>
+                <div class="text-gray-600 text-sm leading-relaxed">
+                    指产生所属于当月的所有摊销费用，累计总额平摊到当月每一笔订单上。当月订单总量越多，单笔订单分摊的费用就越少；当月订单总量越少，单笔订单分摊的费用就越高。
+                </div>
+                <div class="mt-4 text-right">
+                    <span class="text-primary text-base cursor-pointer" onclick="hideAmortizeTip()">知道了</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图片查看弹窗 -->
+        <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-80 z-50 hidden flex items-center justify-center px-4" onclick="hideImageModal(event)">
+            <div class="w-full max-w-sm" onclick="event.stopPropagation()">
+                <div class="flex justify-between items-center mb-4">
+                    <div id="imageModalTitle" class="text-white text-lg font-medium">装货单据</div>
+                    <i class="fa fa-times text-white text-xl cursor-pointer" onclick="hideImageModal()"></i>
+                </div>
+                <div class="bg-white rounded-xl p-4">
+                    <div id="imageModalContent">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 当期收益 -->
+        <div class="bg-white rounded-2xl p-5 border-2 border-profitGreen border-opacity-30 bg-profitGreen bg-opacity-5">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-gray-900 text-lg font-semibold">当期收益</span>
+                <span class="text-profitGreen text-2xl font-bold">¥3570 元</span>
+            </div>
+            <div class="text-xs text-gray-400">
+                计算公式：当期收益 = 运费 - 司机报销费用 - 订单其他费用 - 月度摊销费用
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部任务栏模拟 -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-between items-center">
+        <div class="flex gap-4 items-center">
+            <div class="w-8 h-8 bg-green-600 rounded"></div>
+            <i class="fa fa-chrome text-blue-500 text-xl"></i>
+            <div class="w-8 h-8 bg-yellow-500 rounded flex items-center justify-center text-black font-bold">P</div>
+            <i class="fa fa-folder-open text-yellow-600 text-xl"></i>
+        </div>
+        <div class="flex gap-4 items-center">
+            <i class="fa fa-angle-up text-gray-500"></i>
+            <i class="fa fa-windows text-red-600 text-xl"></i>
+            <i class="fa fa-refresh text-gray-500"></i>
+            <span class="text-sm text-gray-600">英</span>
+            <i class="fa fa-wifi text-gray-600"></i>
+            <i class="fa fa-battery-full text-gray-600"></i>
+        </div>
+        <span class="absolute right-2 bottom-1 text-xs text-gray-400">20</span>
+    </div>
+    <script>
+        function goBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'dindan.html';
+            }
+        }
+
+        function showAmortizeTip() {
+            document.getElementById('amortizeModal').classList.remove('hidden');
+        }
+
+        function hideAmortizeTip(event) {
+            if (!event || event.target.id === 'amortizeModal') {
+                document.getElementById('amortizeModal').classList.add('hidden');
+            }
+        }
+
+        function showImageModal(type) {
+            const modal = document.getElementById('imageModal');
+            const title = document.getElementById('imageModalTitle');
+            const content = document.getElementById('imageModalContent');
+
+            if (type === 'loading') {
+                title.textContent = '装货单据（32.5 吨）';
+                content.innerHTML = `
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-file-image-o text-gray-400 text-4xl"></i>
+                        </div>
+                        <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-plus text-gray-400 text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="text-gray-500 text-sm mt-3">公里数（128 公里）</div>
+                    <div class="grid grid-cols-2 gap-3 mt-2">
+                        <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-file-image-o text-gray-400 text-4xl"></i>
+                        </div>
+                        <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-plus text-gray-400 text-2xl"></i>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'unloading') {
+                title.textContent = '卸货单据（32.3 吨）';
+                content.innerHTML = `
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-file-image-o text-gray-400 text-4xl"></i>
+                        </div>
+                        <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-plus text-gray-400 text-2xl"></i>
+                        </div>
+                    </div>
+                `;
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function hideImageModal(event) {
+            if (!event || event.target.id === 'imageModal') {
+                document.getElementById('imageModal').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
