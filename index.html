@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3677f0',
+                        profitGreen: '#00bb66',
+                        profitTeal: '#00c8a8',
+                        freightBlue: '#6c5ce7',
+                        costRed: '#ee4466',
+                        amortizeOrange: '#f8bc94',
+                        cardBg: '#f8f9fa',
+                        pageBg: '#f3f4f6',
+                        sectionHeaderBg: '#f3f4f6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #ffffff;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .card-item {
+            border-radius: 14px;
+            background: #f7f8fa;
+        }
+        .order-item {
+            border-radius: 12px;
+            background: #ffffff;
+            border: 1px solid #f0f2f5;
+        }
+        .icon-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .arrow-right {
+            color: #c0c4cc;
+        }
+        .info-card {
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .section-header {
+            background-color: #f3f4f6;
+            padding: 14px 16px;
+        }
+        .section-body {
+            padding: 4px 16px;
+        }
+        .info-row {
+            padding: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .info-row + .info-row {
+            border-top: 1px solid #f3f4f6;
+        }
+    </style>
+</head>
+<body class="max-w-md mx-auto min-h-screen bg-white relative pb-20">
+
+    <!-- ============ 页面：首页（订单明细） ============ -->
+    <div id="page-dindan" class="page active">
+        <!-- 顶部状态栏模拟 -->
+        <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800">
+            <span>4:02</span>
+            <div class="flex gap-3">
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-square-o"></i>
+            </div>
+            <div class="flex gap-1">
+                <i class="fa fa-wifi"></i>
+                <i class="fa fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- 头部导航 -->
+        <div class="flex items-center px-4 py-3 border-b border-gray-100">
+            <i class="fa fa-angle-left text-xl mr-3 text-gray-800"></i>
+            <h1 class="text-xl font-medium flex-1 text-center pr-8">订单明细</h1>
+        </div>
+
+        <div class="px-4 py-4 space-y-4">
+            <!-- 查询条件卡片 -->
+            <div class="card-item p-4">
+                <!-- 日期选择 -->
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fa fa-calendar text-primary text-xl"></i>
+                    <span class="text-lg text-primary font-medium">2026-07-01</span>
+                    <span class="text-gray-400">至</span>
+                    <div class="flex items-center">
+                        <span class="text-lg text-primary font-medium">2026-07-31</span>
+                        <i class="fa fa-angle-down text-gray-400 ml-1"></i>
+                    </div>
+                    <button class="bg-primary text-white px-6 py-2 rounded-xl ml-auto text-base">查询</button>
+                </div>
+                <!-- 订单号 -->
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-list-alt text-primary text-xl w-[24px] text-center"></i>
+                    <input type="text" placeholder="请输入订单号" class="flex-1 bg-transparent text-gray-700 text-base outline-none placeholder-gray-400">
+                </div>
+                <!-- 发货地 -->
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-map-marker text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="dindan-sendProvince" class="dindan-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="dindan-sendCity" class="dindan-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="dindan-sendDistrict" class="dindan-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- 收货地 -->
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-flag-checkered text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="dindan-receiveProvince" class="dindan-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="dindan-receiveCity" class="dindan-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="dindan-receiveDistrict" class="dindan-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- 车牌号选择 -->
+                <div class="flex items-center gap-2">
+                    <i class="fa fa-truck text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <select id="dindan-plate" class="flex-1 bg-transparent text-gray-700 text-base outline-none appearance-none">
+                        <option value="">请选择车牌号</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 总收益 -->
+            <div class="card-item p-4 flex items-center cursor-pointer" onclick="navigateTo('total-revenue')">
+                <div class="icon-box bg-cyan-400 mr-3">
+                    <i class="fa fa-line-chart text-white text-xl"></i>
+                </div>
+                <div class="flex-1 flex items-center">
+                    <div class="text-gray-700 text-lg">总收益</div>
+                    <div class="text-profitGreen text-xl font-medium ml-auto">¥6537</div>
+                </div>
+                <i class="fa fa-check-circle text-profitGreen text-xl mr-2"></i>
+                <i class="fa fa-angle-right arrow-right text-xl"></i>
+            </div>
+
+            <!-- 总运费 -->
+            <div class="card-item p-4 flex items-center cursor-pointer" onclick="navigateTo('total-freight')">
+                <div class="icon-box bg-freightBlue mr-3">
+                    <i class="fa fa-truck text-white text-xl"></i>
+                </div>
+                <div class="flex-1 flex items-center">
+                    <div class="text-gray-700 text-lg">总运费</div>
+                    <div class="text-freightBlue text-xl font-medium ml-auto">¥7160</div>
+                </div>
+                <i class="fa fa-check-circle text-profitGreen text-xl mr-2"></i>
+                <i class="fa fa-angle-right arrow-right text-xl"></i>
+            </div>
+
+            <!-- 总费用 -->
+            <div class="card-item p-4 flex items-center cursor-pointer" onclick="navigateTo('total-cost')">
+                <div class="icon-box bg-pink-400 mr-3">
+                    <i class="fa fa-credit-card text-white text-xl"></i>
+                </div>
+                <div class="flex-1 flex items-center">
+                    <div class="text-gray-700 text-lg">总费用</div>
+                    <div class="text-costRed text-xl font-medium ml-auto">¥215</div>
+                </div>
+                <i class="fa fa-check-circle text-profitGreen text-xl mr-2"></i>
+                <i class="fa fa-angle-right arrow-right text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 页面：总收益 ============ -->
+    <div id="page-total-revenue" class="page">
+        <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800">
+            <span>4:02</span>
+            <div class="flex gap-3">
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-square-o"></i>
+            </div>
+            <div class="flex gap-1">
+                <i class="fa fa-wifi"></i>
+                <i class="fa fa-battery-full"></i>
+            </div>
+        </div>
+        <div class="flex items-center px-4 py-3 border-b border-gray-100">
+            <i class="fa fa-angle-left text-xl mr-3 text-gray-800 cursor-pointer" onclick="goBack()"></i>
+            <h1 class="text-xl font-medium flex-1 text-center pr-8">总收益</h1>
+        </div>
+        <div class="px-4 py-4 space-y-4">
+            <div class="card-item p-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fa fa-calendar text-primary text-xl"></i>
+                    <span class="text-lg text-primary font-medium">2026-07-01</span>
+                    <span class="text-gray-400">至</span>
+                    <div class="flex items-center">
+                        <span class="text-lg text-primary font-medium">2026-07-31</span>
+                        <i class="fa fa-angle-down text-gray-400 ml-1"></i>
+                    </div>
+                    <button class="bg-primary text-white px-6 py-2 rounded-xl ml-auto text-base">查询</button>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-list-alt text-primary text-xl w-[24px] text-center"></i>
+                    <input type="text" placeholder="请输入订单号" class="flex-1 bg-transparent text-gray-700 text-base outline-none placeholder-gray-400">
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-map-marker text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="total-revenue-sendProvince" class="total-revenue-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="total-revenue-sendCity" class="total-revenue-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="total-revenue-sendDistrict" class="total-revenue-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-flag-checkered text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="total-revenue-receiveProvince" class="total-revenue-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="total-revenue-receiveCity" class="total-revenue-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="total-revenue-receiveDistrict" class="total-revenue-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa fa-truck text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <select id="total-revenue-plate" class="flex-1 bg-transparent text-gray-700 text-base outline-none appearance-none">
+                        <option value="">请选择车牌号</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm py-4 px-6 flex items-center justify-center">
+                <span class="text-gray-500 text-base mr-2">总收益</span>
+                <span class="text-profitTeal text-xl font-semibold">¥6537</span>
+            </div>
+            <div class="text-gray-900 text-base font-semibold px-1">收益明细</div>
+            <div class="space-y-3">
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260715-001</span>
+                        <span class="text-profitTeal text-base font-semibold">¥1873.3</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260714-027</span>
+                        <span class="text-profitTeal text-base font-semibold">¥325</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260714-017</span>
+                        <span class="text-profitTeal text-base font-semibold">¥336.2</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260714-016</span>
+                        <span class="text-profitTeal text-base font-semibold">¥336</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260713-051</span>
+                        <span class="text-profitTeal text-base font-semibold">¥350.53</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260713-015</span>
+                        <span class="text-profitTeal text-base font-semibold">¥1622.8</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 页面：总运费 ============ -->
+    <div id="page-total-freight" class="page">
+        <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800">
+            <span>4:02</span>
+            <div class="flex gap-3">
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-square-o"></i>
+            </div>
+            <div class="flex gap-1">
+                <i class="fa fa-wifi"></i>
+                <i class="fa fa-battery-full"></i>
+            </div>
+        </div>
+        <div class="flex items-center px-4 py-3 border-b border-gray-100">
+            <i class="fa fa-angle-left text-xl mr-3 text-gray-800 cursor-pointer" onclick="goBack()"></i>
+            <h1 class="text-xl font-medium flex-1 text-center pr-8">总运费</h1>
+        </div>
+        <div class="px-4 py-4 space-y-4">
+            <div class="card-item p-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fa fa-calendar text-primary text-xl"></i>
+                    <span class="text-lg text-primary font-medium">2026-07-01</span>
+                    <span class="text-gray-400">至</span>
+                    <div class="flex items-center">
+                        <span class="text-lg text-primary font-medium">2026-07-31</span>
+                        <i class="fa fa-angle-down text-gray-400 ml-1"></i>
+                    </div>
+                    <button class="bg-primary text-white px-6 py-2 rounded-xl ml-auto text-base">查询</button>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-list-alt text-primary text-xl w-[24px] text-center"></i>
+                    <input type="text" placeholder="请输入订单号" class="flex-1 bg-transparent text-gray-700 text-base outline-none placeholder-gray-400">
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-map-marker text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="total-freight-sendProvince" class="total-freight-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="total-freight-sendCity" class="total-freight-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="total-freight-sendDistrict" class="total-freight-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-flag-checkered text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="total-freight-receiveProvince" class="total-freight-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="total-freight-receiveCity" class="total-freight-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="total-freight-receiveDistrict" class="total-freight-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa fa-truck text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <select id="total-freight-plate" class="flex-1 bg-transparent text-gray-700 text-base outline-none appearance-none">
+                        <option value="">请选择车牌号</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm py-4 px-6 flex items-center justify-center">
+                <span class="text-gray-500 text-base mr-2">总运费</span>
+                <span class="text-freightBlue text-xl font-semibold">¥7160</span>
+            </div>
+            <div class="text-gray-900 text-base font-semibold px-1">运费明细</div>
+            <div class="space-y-3">
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260715-001</span>
+                        <span class="text-freightBlue text-base font-semibold">¥1980.5</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260714-027</span>
+                        <span class="text-freightBlue text-base font-semibold">¥420</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260714-017</span>
+                        <span class="text-freightBlue text-base font-semibold">¥386.8</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260714-016</span>
+                        <span class="text-freightBlue text-base font-semibold">¥355</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260713-051</span>
+                        <span class="text-freightBlue text-base font-semibold">¥410.2</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260713-015</span>
+                        <span class="text-freightBlue text-base font-semibold">¥1752.6</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260712-008</span>
+                        <span class="text-freightBlue text-base font-semibold">¥528.9</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260710-022</span>
+                        <span class="text-freightBlue text-base font-semibold">¥645.5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 页面：总费用 ============ -->
+    <div id="page-total-cost" class="page">
+        <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800">
+            <span>4:02</span>
+            <div class="flex gap-3">
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-square-o"></i>
+            </div>
+            <div class="flex gap-1">
+                <i class="fa fa-wifi"></i>
+                <i class="fa fa-battery-full"></i>
+            </div>
+        </div>
+        <div class="flex items-center px-4 py-3 border-b border-gray-100">
+            <i class="fa fa-angle-left text-xl mr-3 text-gray-800 cursor-pointer" onclick="goBack()"></i>
+            <h1 class="text-xl font-medium flex-1 text-center pr-8">总费用</h1>
+        </div>
+        <div class="px-4 py-4 space-y-4">
+            <div class="card-item p-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fa fa-calendar text-primary text-xl"></i>
+                    <span class="text-lg text-primary font-medium">2026-07-01</span>
+                    <span class="text-gray-400">至</span>
+                    <div class="flex items-center">
+                        <span class="text-lg text-primary font-medium">2026-07-31</span>
+                        <i class="fa fa-angle-down text-gray-400 ml-1"></i>
+                    </div>
+                    <button class="bg-primary text-white px-6 py-2 rounded-xl ml-auto text-base">查询</button>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-list-alt text-primary text-xl w-[24px] text-center"></i>
+                    <input type="text" placeholder="请输入订单号" class="flex-1 bg-transparent text-gray-700 text-base outline-none placeholder-gray-400">
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-map-marker text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="total-cost-sendProvince" class="total-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="total-cost-sendCity" class="total-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="total-cost-sendDistrict" class="total-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-flag-checkered text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="total-cost-receiveProvince" class="total-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="total-cost-receiveCity" class="total-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="total-cost-receiveDistrict" class="total-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa fa-truck text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <select id="total-cost-plate" class="flex-1 bg-transparent text-gray-700 text-base outline-none appearance-none">
+                        <option value="">请选择车牌号</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm py-4 px-6 flex items-center justify-center">
+                <span class="text-gray-500 text-base mr-2">总费用</span>
+                <span class="text-costRed text-xl font-semibold">¥623</span>
+            </div>
+            <div class="text-gray-900 text-base font-semibold px-1">费用明细</div>
+            <div class="space-y-3">
+                <div class="bg-white rounded-2xl shadow-sm p-4 cursor-pointer" onclick="navigateTo('driver-reimburse')">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fa fa-user text-orange-500"></i>
+                            </div>
+                            <span class="text-gray-800 text-base font-medium">司机报销费用</span>
+                        </div>
+                        <span class="text-costRed text-base font-semibold">¥280</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4 cursor-pointer" onclick="navigateTo('order-other-cost')">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fa fa-file-text-o text-blue-500"></i>
+                            </div>
+                            <span class="text-gray-800 text-base font-medium">订单其他费用</span>
+                        </div>
+                        <span class="text-costRed text-base font-semibold">¥343</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4 cursor-pointer" onclick="navigateTo('monthly-amortization')">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 rounded-lg flex items-center justify-center mr-3" style="background: #f8bc94;">
+                                <i class="fa fa-calendar-check-o text-white"></i>
+                            </div>
+                            <span class="text-gray-800 text-base font-medium">月度摊销费用</span>
+                        </div>
+                        <span class="text-costRed text-base font-semibold">¥408</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 页面：司机报销费用 ============ -->
+    <div id="page-driver-reimburse" class="page">
+        <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800">
+            <span>4:02</span>
+            <div class="flex gap-3">
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-square-o"></i>
+            </div>
+            <div class="flex gap-1">
+                <i class="fa fa-wifi"></i>
+                <i class="fa fa-battery-full"></i>
+            </div>
+        </div>
+        <div class="flex items-center px-4 py-3 border-b border-gray-100">
+            <i class="fa fa-angle-left text-xl mr-3 text-gray-800 cursor-pointer" onclick="goBack()"></i>
+            <h1 class="text-xl font-medium flex-1 text-center pr-8">司机报销费用</h1>
+        </div>
+        <div class="px-4 py-4 space-y-4">
+            <div class="card-item p-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fa fa-calendar text-primary text-xl"></i>
+                    <span class="text-lg text-primary font-medium">2026-07-01</span>
+                    <span class="text-gray-400">至</span>
+                    <div class="flex items-center">
+                        <span class="text-lg text-primary font-medium">2026-07-31</span>
+                        <i class="fa fa-angle-down text-gray-400 ml-1"></i>
+                    </div>
+                    <button class="bg-primary text-white px-6 py-2 rounded-xl ml-auto text-base">查询</button>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-list-alt text-primary text-xl w-[24px] text-center"></i>
+                    <input type="text" placeholder="请输入订单号" class="flex-1 bg-transparent text-gray-700 text-base outline-none placeholder-gray-400">
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-map-marker text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="driver-reimburse-sendProvince" class="driver-reimburse-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="driver-reimburse-sendCity" class="driver-reimburse-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="driver-reimburse-sendDistrict" class="driver-reimburse-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-flag-checkered text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="driver-reimburse-receiveProvince" class="driver-reimburse-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="driver-reimburse-receiveCity" class="driver-reimburse-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="driver-reimburse-receiveDistrict" class="driver-reimburse-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa fa-truck text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <select id="driver-reimburse-plate" class="flex-1 bg-transparent text-gray-700 text-base outline-none appearance-none">
+                        <option value="">请选择车牌号</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm py-4 px-6 flex items-center justify-center">
+                <span class="text-gray-500 text-base mr-2">司机报销费用</span>
+                <span class="text-costRed text-xl font-semibold">¥280</span>
+            </div>
+            <div class="text-gray-900 text-base font-semibold px-1">费用明细</div>
+            <div class="space-y-3">
+                <div class="bg-white rounded-2xl shadow-sm p-4 cursor-pointer" onclick="navigateTo('labor-cost')">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fa fa-users text-orange-500"></i>
+                            </div>
+                            <span class="text-gray-800 text-base font-medium">劳务费</span>
+                        </div>
+                        <span class="text-costRed text-base font-semibold">¥150</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fa fa-file-text-o text-blue-500"></i>
+                            </div>
+                            <span class="text-gray-800 text-base font-medium">信息开票费</span>
+                        </div>
+                        <span class="text-costRed text-base font-semibold">¥80</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fa fa-cubes text-green-500"></i>
+                            </div>
+                            <span class="text-gray-800 text-base font-medium">装卸过磅费</span>
+                        </div>
+                        <span class="text-costRed text-base font-semibold">¥50</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 页面：劳务费 ============ -->
+    <div id="page-labor-cost" class="page">
+        <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800">
+            <span>4:02</span>
+            <div class="flex gap-3">
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-square-o"></i>
+            </div>
+            <div class="flex gap-1">
+                <i class="fa fa-wifi"></i>
+                <i class="fa fa-battery-full"></i>
+            </div>
+        </div>
+        <div class="flex items-center px-4 py-3 border-b border-gray-100">
+            <i class="fa fa-angle-left text-xl mr-3 text-gray-800 cursor-pointer" onclick="goBack()"></i>
+            <h1 class="text-xl font-medium flex-1 text-center pr-8">劳务费</h1>
+        </div>
+        <div class="px-4 py-4 space-y-4">
+            <div class="card-item p-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fa fa-calendar text-primary text-xl"></i>
+                    <span class="text-lg text-primary font-medium">2026-07-01</span>
+                    <span class="text-gray-400">至</span>
+                    <div class="flex items-center">
+                        <span class="text-lg text-primary font-medium">2026-07-31</span>
+                        <i class="fa fa-angle-down text-gray-400 ml-1"></i>
+                    </div>
+                    <button class="bg-primary text-white px-6 py-2 rounded-xl ml-auto text-base">查询</button>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-list-alt text-primary text-xl w-[24px] text-center"></i>
+                    <input type="text" placeholder="请输入订单号" class="flex-1 bg-transparent text-gray-700 text-base outline-none placeholder-gray-400">
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-map-marker text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="labor-cost-sendProvince" class="labor-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="labor-cost-sendCity" class="labor-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="labor-cost-sendDistrict" class="labor-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-flag-checkered text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="labor-cost-receiveProvince" class="labor-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="labor-cost-receiveCity" class="labor-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="labor-cost-receiveDistrict" class="labor-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa fa-truck text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <select id="labor-cost-plate" class="flex-1 bg-transparent text-gray-700 text-base outline-none appearance-none">
+                        <option value="">请选择车牌号</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm py-4 px-6 flex items-center justify-center">
+                <span class="text-gray-500 text-base mr-2">劳务费</span>
+                <span class="text-costRed text-xl font-semibold">¥150</span>
+            </div>
+            <div class="text-gray-900 text-base font-semibold px-1">订单明细</div>
+            <div class="space-y-3">
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260715-001</span>
+                        <span class="text-costRed text-base font-semibold">¥50</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260714-027</span>
+                        <span class="text-costRed text-base font-semibold">¥30</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260714-017</span>
+                        <span class="text-costRed text-base font-semibold">¥40</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260713-015</span>
+                        <span class="text-costRed text-base font-semibold">¥30</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 页面：订单其他费用 ============ -->
+    <div id="page-order-other-cost" class="page">
+        <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800">
+            <span>4:02</span>
+            <div class="flex gap-3">
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-square-o"></i>
+            </div>
+            <div class="flex gap-1">
+                <i class="fa fa-wifi"></i>
+                <i class="fa fa-battery-full"></i>
+            </div>
+        </div>
+        <div class="flex items-center px-4 py-3 border-b border-gray-100">
+            <i class="fa fa-angle-left text-xl mr-3 text-gray-800 cursor-pointer" onclick="goBack()"></i>
+            <h1 class="text-xl font-medium flex-1 text-center pr-8">订单其他费用</h1>
+        </div>
+        <div class="px-4 py-4 space-y-4">
+            <div class="card-item p-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fa fa-calendar text-primary text-xl"></i>
+                    <span class="text-lg text-primary font-medium">2026-07-01</span>
+                    <span class="text-gray-400">至</span>
+                    <div class="flex items-center">
+                        <span class="text-lg text-primary font-medium">2026-07-31</span>
+                        <i class="fa fa-angle-down text-gray-400 ml-1"></i>
+                    </div>
+                    <button class="bg-primary text-white px-6 py-2 rounded-xl ml-auto text-base">查询</button>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-list-alt text-primary text-xl w-[24px] text-center"></i>
+                    <input type="text" placeholder="请输入订单号" class="flex-1 bg-transparent text-gray-700 text-base outline-none placeholder-gray-400">
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-map-marker text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="order-other-cost-sendProvince" class="order-other-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="order-other-cost-sendCity" class="order-other-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="order-other-cost-sendDistrict" class="order-other-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-flag-checkered text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="order-other-cost-receiveProvince" class="order-other-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="order-other-cost-receiveCity" class="order-other-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="order-other-cost-receiveDistrict" class="order-other-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa fa-truck text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <select id="order-other-cost-plate" class="flex-1 bg-transparent text-gray-700 text-base outline-none appearance-none">
+                        <option value="">请选择车牌号</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm py-4 px-6 flex items-center justify-center">
+                <span class="text-gray-500 text-base mr-2">订单其他费用</span>
+                <span class="text-costRed text-xl font-semibold">¥343</span>
+            </div>
+            <div class="text-gray-900 text-base font-semibold px-1">费用明细</div>
+            <div class="space-y-3">
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fa fa-users text-orange-500"></i>
+                            </div>
+                            <span class="text-gray-800 text-base font-medium">劳务费</span>
+                        </div>
+                        <span class="text-costRed text-base font-semibold">¥120</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4 cursor-pointer" onclick="navigateTo('charging-cost')">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fa fa-bolt text-green-500"></i>
+                            </div>
+                            <span class="text-gray-800 text-base font-medium">充电费</span>
+                        </div>
+                        <span class="text-costRed text-base font-semibold">¥88</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fa fa-tint text-yellow-500"></i>
+                            </div>
+                            <span class="text-gray-800 text-base font-medium">加油费</span>
+                        </div>
+                        <span class="text-costRed text-base font-semibold">¥135</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 页面：充电费 ============ -->
+    <div id="page-charging-cost" class="page">
+        <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800">
+            <span>4:02</span>
+            <div class="flex gap-3">
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-square-o"></i>
+            </div>
+            <div class="flex gap-1">
+                <i class="fa fa-wifi"></i>
+                <i class="fa fa-battery-full"></i>
+            </div>
+        </div>
+        <div class="flex items-center px-4 py-3 border-b border-gray-100">
+            <i class="fa fa-angle-left text-xl mr-3 text-gray-800 cursor-pointer" onclick="goBack()"></i>
+            <h1 class="text-xl font-medium flex-1 text-center pr-8">充电费</h1>
+        </div>
+        <div class="px-4 py-4 space-y-4">
+            <div class="card-item p-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fa fa-calendar text-primary text-xl"></i>
+                    <span class="text-lg text-primary font-medium">2026-07-01</span>
+                    <span class="text-gray-400">至</span>
+                    <div class="flex items-center">
+                        <span class="text-lg text-primary font-medium">2026-07-31</span>
+                        <i class="fa fa-angle-down text-gray-400 ml-1"></i>
+                    </div>
+                    <button class="bg-primary text-white px-6 py-2 rounded-xl ml-auto text-base">查询</button>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-list-alt text-primary text-xl w-[24px] text-center"></i>
+                    <input type="text" placeholder="请输入订单号" class="flex-1 bg-transparent text-gray-700 text-base outline-none placeholder-gray-400">
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-map-marker text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="charging-cost-sendProvince" class="charging-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="charging-cost-sendCity" class="charging-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="charging-cost-sendDistrict" class="charging-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-flag-checkered text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="charging-cost-receiveProvince" class="charging-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="charging-cost-receiveCity" class="charging-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="charging-cost-receiveDistrict" class="charging-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa fa-truck text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <select id="charging-cost-plate" class="flex-1 bg-transparent text-gray-700 text-base outline-none appearance-none">
+                        <option value="">请选择车牌号</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm py-4 px-6 flex items-center justify-center">
+                <span class="text-gray-500 text-base mr-2">充电费</span>
+                <span class="text-costRed text-xl font-semibold">¥88</span>
+            </div>
+            <div class="text-gray-900 text-base font-semibold px-1">订单明细</div>
+            <div class="space-y-3">
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260712-005</span>
+                        <span class="text-costRed text-base font-semibold">¥45</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260708-012</span>
+                        <span class="text-costRed text-base font-semibold">¥25</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260703-009</span>
+                        <span class="text-costRed text-base font-semibold">¥18</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 页面：月度摊销费用 ============ -->
+    <div id="page-monthly-amortization" class="page">
+        <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800">
+            <span>4:02</span>
+            <div class="flex gap-3">
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-square-o"></i>
+            </div>
+            <div class="flex gap-1">
+                <i class="fa fa-wifi"></i>
+                <i class="fa fa-battery-full"></i>
+            </div>
+        </div>
+        <div class="flex items-center px-4 py-3 border-b border-gray-100">
+            <i class="fa fa-angle-left text-xl mr-3 text-gray-800 cursor-pointer" onclick="goBack()"></i>
+            <h1 class="text-xl font-medium flex-1 text-center pr-8">月度摊销费用</h1>
+        </div>
+        <div class="px-4 py-4 space-y-4">
+            <div class="card-item p-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fa fa-calendar text-primary text-xl"></i>
+                    <span class="text-lg text-primary font-medium">2026-07-01</span>
+                    <span class="text-gray-400">至</span>
+                    <div class="flex items-center">
+                        <span class="text-lg text-primary font-medium">2026-07-31</span>
+                        <i class="fa fa-angle-down text-gray-400 ml-1"></i>
+                    </div>
+                    <button class="bg-primary text-white px-6 py-2 rounded-xl ml-auto text-base">查询</button>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-list-alt text-primary text-xl w-[24px] text-center"></i>
+                    <input type="text" placeholder="请输入订单号" class="flex-1 bg-transparent text-gray-700 text-base outline-none placeholder-gray-400">
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-map-marker text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="monthly-amortization-sendProvince" class="monthly-amortization-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="monthly-amortization-sendCity" class="monthly-amortization-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="monthly-amortization-sendDistrict" class="monthly-amortization-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-flag-checkered text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="monthly-amortization-receiveProvince" class="monthly-amortization-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="monthly-amortization-receiveCity" class="monthly-amortization-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="monthly-amortization-receiveDistrict" class="monthly-amortization-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa fa-truck text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <select id="monthly-amortization-plate" class="flex-1 bg-transparent text-gray-700 text-base outline-none appearance-none">
+                        <option value="">请选择车牌号</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm py-4 px-6">
+                <div class="flex items-center justify-center mb-2">
+                    <span class="text-gray-500 text-base mr-2">月度摊销费用</span>
+                    <span class="text-costRed text-xl font-semibold">¥408</span>
+                </div>
+                <div class="flex items-center justify-center pt-2 border-t border-gray-100">
+                    <span class="text-gray-400 text-sm mr-2">单笔订单摊销费用</span>
+                    <span class="text-costRed text-base font-medium">¥68 <span class="text-gray-400 text-xs font-normal">/ 6笔</span></span>
+                </div>
+            </div>
+            <div class="text-gray-900 text-base font-semibold px-1">费用明细</div>
+            <div class="space-y-3">
+                <div class="bg-white rounded-2xl shadow-sm p-4 cursor-pointer" onclick="navigateTo('repair-cost')">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fa fa-wrench text-gray-500"></i>
+                            </div>
+                            <span class="text-gray-800 text-base font-medium">修车费</span>
+                        </div>
+                        <span class="text-costRed text-base font-semibold">¥200</span>
+                    </div>
+                    <div class="flex items-center justify-end mt-2 pt-2 border-t border-gray-100">
+                        <span class="text-gray-400 text-sm mr-2">单笔摊销</span>
+                        <span class="text-costRed text-sm font-medium">¥33.33</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fa fa-shield text-blue-500"></i>
+                            </div>
+                            <span class="text-gray-800 text-base font-medium">税费审车及保险</span>
+                        </div>
+                        <span class="text-costRed text-base font-semibold">¥158</span>
+                    </div>
+                    <div class="flex items-center justify-end mt-2 pt-2 border-t border-gray-100">
+                        <span class="text-gray-400 text-sm mr-2">单笔摊销</span>
+                        <span class="text-costRed text-sm font-medium">¥26.33</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fa fa-ellipsis-h text-purple-500"></i>
+                            </div>
+                            <span class="text-gray-800 text-base font-medium">其他</span>
+                        </div>
+                        <span class="text-costRed text-base font-semibold">¥50</span>
+                    </div>
+                    <div class="flex items-center justify-end mt-2 pt-2 border-t border-gray-100">
+                        <span class="text-gray-400 text-sm mr-2">单笔摊销</span>
+                        <span class="text-costRed text-sm font-medium">¥8.33</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 页面：修车费 ============ -->
+    <div id="page-repair-cost" class="page">
+        <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800">
+            <span>4:02</span>
+            <div class="flex gap-3">
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-square-o"></i>
+            </div>
+            <div class="flex gap-1">
+                <i class="fa fa-wifi"></i>
+                <i class="fa fa-battery-full"></i>
+            </div>
+        </div>
+        <div class="flex items-center px-4 py-3 border-b border-gray-100">
+            <i class="fa fa-angle-left text-xl mr-3 text-gray-800 cursor-pointer" onclick="goBack()"></i>
+            <h1 class="text-xl font-medium flex-1 text-center pr-8">修车费</h1>
+        </div>
+        <div class="px-4 py-4 space-y-4">
+            <div class="card-item p-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fa fa-calendar text-primary text-xl"></i>
+                    <span class="text-lg text-primary font-medium">2026-07-01</span>
+                    <span class="text-gray-400">至</span>
+                    <div class="flex items-center">
+                        <span class="text-lg text-primary font-medium">2026-07-31</span>
+                        <i class="fa fa-angle-down text-gray-400 ml-1"></i>
+                    </div>
+                    <button class="bg-primary text-white px-6 py-2 rounded-xl ml-auto text-base">查询</button>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-list-alt text-primary text-xl w-[24px] text-center"></i>
+                    <input type="text" placeholder="请输入订单号" class="flex-1 bg-transparent text-gray-700 text-base outline-none placeholder-gray-400">
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-map-marker text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="repair-cost-sendProvince" class="repair-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="repair-cost-sendCity" class="repair-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="repair-cost-sendDistrict" class="repair-cost-send flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-flag-checkered text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <div class="flex-1 flex gap-1 items-center">
+                        <select id="repair-cost-receiveProvince" class="repair-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择省份</option>
+                        </select>
+                        <select id="repair-cost-receiveCity" class="repair-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择城市</option>
+                        </select>
+                        <select id="repair-cost-receiveDistrict" class="repair-cost-receive flex-1 bg-white text-gray-700 text-sm px-2 py-1.5 rounded-lg border border-gray-200 outline-none appearance-none">
+                            <option value="">请选择区县</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa fa-truck text-primary text-xl w-[24px] text-center flex-shrink-0"></i>
+                    <select id="repair-cost-plate" class="flex-1 bg-transparent text-gray-700 text-base outline-none appearance-none">
+                        <option value="">请选择车牌号</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa fa-sticky-note-o text-primary text-xl w-[24px] text-center"></i>
+                    <input type="text" placeholder="请输入备注" class="flex-1 bg-transparent text-gray-700 text-base outline-none placeholder-gray-400">
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm py-4 px-6 flex flex-col items-center justify-center">
+                <div class="flex items-center justify-center mb-1">
+                    <span class="text-gray-500 text-base mr-2">修车费</span>
+                    <span class="text-costRed text-xl font-semibold">¥200</span>
+                </div>
+                <div class="text-gray-400 text-sm">单笔 ¥33.33</div>
+            </div>
+            <div class="text-gray-900 text-base font-semibold px-1">订单明细</div>
+            <div class="space-y-3">
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260701-001</span>
+                        <span class="text-costRed text-base font-semibold">¥33.33</span>
+                    </div>
+                    <div class="text-gray-500 text-sm">
+                        <span class="text-gray-400 text-xs">备注：</span>月度摊销
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260705-003</span>
+                        <span class="text-costRed text-base font-semibold">¥33.33</span>
+                    </div>
+                    <div class="text-gray-500 text-sm">
+                        <span class="text-gray-400 text-xs">备注：</span>月度摊销
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260708-005</span>
+                        <span class="text-costRed text-base font-semibold">¥33.33</span>
+                    </div>
+                    <div class="text-gray-500 text-sm">
+                        <span class="text-gray-400 text-xs">备注：</span>月度摊销
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260710-008</span>
+                        <span class="text-costRed text-base font-semibold">¥33.33</span>
+                    </div>
+                    <div class="text-gray-500 text-sm">
+                        <span class="text-gray-400 text-xs">备注：</span>月度摊销
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260712-010</span>
+                        <span class="text-costRed text-base font-semibold">¥33.33</span>
+                    </div>
+                    <div class="text-gray-500 text-sm">
+                        <span class="text-gray-400 text-xs">备注：</span>月度摊销
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-primary text-base font-medium cursor-pointer" onclick="navigateTo('order-detail')">DD-260715-015</span>
+                        <span class="text-costRed text-base font-semibold">¥33.34</span>
+                    </div>
+                    <div class="text-gray-500 text-sm">
+                        <span class="text-gray-400 text-xs">备注：</span>月度摊销（尾差调整）
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ 页面：订单详情 ============ -->
+    <div id="page-order-detail" class="page">
+        <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-800 bg-pageBg">
+            <span>6:05</span>
+            <div class="flex gap-3">
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-motorcycle"></i>
+                <i class="fa fa-square-o"></i>
+            </div>
+            <div class="flex gap-1">
+                <i class="fa fa-wifi"></i>
+                <i class="fa fa-battery-full"></i>
+            </div>
+        </div>
+        <div class="flex items-center px-4 py-3 bg-pageBg">
+            <i class="fa fa-angle-left text-2xl text-gray-800 cursor-pointer" onclick="goBack()"></i>
+            <h1 class="text-2xl font-medium flex-1 text-center -ml-6">订单详情</h1>
+        </div>
+        <div class="px-4 pb-4 space-y-3 bg-pageBg min-h-screen">
+            <!-- 订单号 & 状态 & 进度条 -->
+            <div class="bg-white rounded-2xl p-5">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="text-primary text-2xl font-semibold">DD-260715-003</div>
+                    <div class="bg-primary text-white px-5 py-1.5 rounded-full text-base font-medium">待评价</div>
+                </div>
+                <!-- 步骤条 -->
+                <div class="flex justify-between items-start relative px-2">
+                    <div class="flex flex-col items-center z-10 flex-1 relative">
+                        <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center mb-2">
+                            <i class="fa fa-check text-sm"></i>
+                        </div>
+                        <div class="absolute top-4 left-1/2 w-full h-0.5 bg-primary -z-0 ml-4"></div>
+                        <span class="text-gray-500 text-sm">待提货</span>
+                    </div>
+                    <div class="flex flex-col items-center z-10 flex-1 relative">
+                        <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center mb-2">
+                            <i class="fa fa-check text-sm"></i>
+                        </div>
+                        <div class="absolute top-4 left-1/2 w-full h-0.5 bg-gray-300 -z-0 ml-4"></div>
+                        <span class="text-gray-500 text-sm">待卸货</span>
+                    </div>
+                    <div class="flex flex-col items-center z-10 flex-1 relative">
+                        <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center mb-2 text-sm font-medium">3</div>
+                        <div class="absolute top-4 left-1/2 w-full h-0.5 bg-gray-300 -z-0 ml-4"></div>
+                        <span class="text-gray-500 text-sm">待评价</span>
+                    </div>
+                    <div class="flex flex-col items-center z-10 flex-1">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-300 text-gray-400 flex items-center justify-center mb-2 text-sm font-medium">4</div>
+                        <span class="text-gray-500 text-sm">已完成</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 货物信息 -->
+            <div class="info-card">
+                <div class="section-header">
+                    <span class="text-gray-900 text-lg font-semibold">货物信息</span>
+                </div>
+                <div class="section-body">
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">车牌号</span>
+                        <span class="text-gray-800 text-base">京D32j90</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">货物名称</span>
+                        <span class="text-gray-800 text-base">砂石料</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">货物规格</span>
+                        <span class="text-gray-800 text-base">中粗砂</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">货运单号</span>
+                        <span class="text-gray-800 text-base">HY20260715003</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">备注</span>
+                        <span class="text-gray-800 text-base">加急配送</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 运输信息 -->
+            <div class="info-card">
+                <div class="section-header">
+                    <span class="text-gray-900 text-lg font-semibold">运输信息</span>
+                </div>
+                <div class="section-body">
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">调度员</span>
+                        <div class="text-right">
+                            <div class="text-gray-800 text-base">王调度</div>
+                            <div class="text-gray-500 text-sm">13800138001</div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">收货人</span>
+                        <div class="text-right">
+                            <div class="text-gray-800 text-base">李总</div>
+                            <div class="text-gray-500 text-sm">13800138002</div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">发货人</span>
+                        <div class="text-right">
+                            <div class="text-gray-800 text-base">张经理</div>
+                            <div class="text-gray-500 text-sm">13800138003</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 运费信息 -->
+            <div class="info-card">
+                <div class="section-header">
+                    <span class="text-gray-900 text-lg font-semibold">运费信息</span>
+                </div>
+                <div class="section-body">
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">计价方式</span>
+                        <span class="text-gray-800 text-base">单价 120 元/吨</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">装货重量（结算）</span>
+                        <span class="text-primary text-base font-medium cursor-pointer underline decoration-dotted" onclick="showImageModal('loading')">32.5 吨</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">卸货重量（结算）</span>
+                        <span class="text-primary text-base font-medium cursor-pointer underline decoration-dotted" onclick="showImageModal('unloading')">32.3 吨</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">运费金额</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-primary text-base font-semibold">¥3876</span>
+                            <span class="text-xs text-green-500">已结算</span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">结算方式</span>
+                        <span class="text-gray-800 text-base">月结</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">备注</span>
+                        <span class="text-gray-800 text-base">按卸货重量结算</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 装货信息 -->
+            <div class="info-card">
+                <div class="section-header flex justify-between items-center">
+                    <span class="text-gray-900 text-lg font-semibold">装货信息</span>
+                    <span class="text-primary text-base">修改</span>
+                </div>
+                <div class="section-body pb-3">
+                    <div class="py-3">
+                        <div class="text-gray-500 text-base mb-3">装货单据（32.5 吨）</div>
+                        <div class="flex gap-2">
+                            <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <i class="fa fa-file-image-o text-gray-400 text-2xl"></i>
+                            </div>
+                            <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <i class="fa fa-plus text-gray-400 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="py-3 border-t border-gray-100">
+                        <div class="text-gray-500 text-base mb-3">公里数（128 公里）</div>
+                        <div class="flex gap-2">
+                            <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <i class="fa fa-file-image-o text-gray-400 text-2xl"></i>
+                            </div>
+                            <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <i class="fa fa-plus text-gray-400 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">备注</span>
+                        <span class="text-gray-800 text-base">装货地：东沙场</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 卸货信息 -->
+            <div class="info-card">
+                <div class="section-header flex justify-between items-center">
+                    <span class="text-gray-900 text-lg font-semibold">卸货信息</span>
+                    <span class="text-primary text-base">修改</span>
+                </div>
+                <div class="section-body pb-3">
+                    <div class="py-3">
+                        <div class="text-gray-500 text-base mb-3">卸货单据（32.3 吨）</div>
+                        <div class="flex gap-2">
+                            <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <i class="fa fa-file-image-o text-gray-400 text-2xl"></i>
+                            </div>
+                            <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <i class="fa fa-plus text-gray-400 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">备注</span>
+                        <span class="text-gray-800 text-base">卸货地：西工地</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 费用信息 -->
+            <div class="info-card">
+                <div class="section-header">
+                    <span class="text-gray-900 text-lg font-semibold">费用信息</span>
+                </div>
+                <div class="section-body">
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">司机报销费用</span>
+                        <div class="flex items-center gap-2 cursor-pointer" onclick="showCostDetailModal('driver')">
+                            <span class="text-costRed text-base underline decoration-dotted">¥150 元</span>
+                            <span class="text-xs text-green-500">已结算</span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-gray-500 text-base">订单其他费用</span>
+                        <div class="flex items-center gap-2 cursor-pointer" onclick="showCostDetailModal('other')">
+                            <span class="text-costRed text-base underline decoration-dotted">¥88 元</span>
+                            <span class="text-xs text-green-500">已结算</span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="flex items-center gap-1">
+                            <span class="text-gray-500 text-base">月度摊销费用</span>
+                            <span class="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center cursor-pointer" onclick="showAmortizeTip()">?</span>
+                        </div>
+                        <div class="flex items-center gap-2 cursor-pointer" onclick="showCostDetailModal('amortization')">
+                            <span class="text-costRed text-base underline decoration-dotted">¥68 元</span>
+                            <span class="text-xs text-green-500">已结算</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 当期收益 -->
+            <div class="bg-white rounded-2xl p-5 border-2 border-profitGreen border-opacity-30 bg-profitGreen bg-opacity-5">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-gray-900 text-lg font-semibold">当期收益</span>
+                    <span class="text-profitGreen text-2xl font-bold">¥3570 元</span>
+                </div>
+                <div class="text-xs text-gray-400">
+                    计算公式：当期收益 = 运费 - 司机报销费用 - 订单其他费用 - 月度摊销费用
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 月度摊销费用解释弹窗 -->
+    <div id="amortizeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center px-6" onclick="hideAmortizeTip(event)">
+        <div class="bg-white rounded-2xl p-5 max-w-sm w-full" onclick="event.stopPropagation()">
+            <div class="text-gray-900 text-lg font-semibold mb-3">月度摊销费用</div>
+            <div class="text-gray-600 text-sm leading-relaxed">
+                指产生所属于当月的所有摊销费用，累计总额平摊到当月每一笔订单上。当月订单总量越多，单笔订单分摊的费用就越少；当月订单总量越少，单笔订单分摊的费用就越高。
+            </div>
+            <div class="mt-4 text-right">
+                <span class="text-primary text-base cursor-pointer" onclick="hideAmortizeTip()">知道了</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片查看弹窗 -->
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-80 z-50 hidden flex items-center justify-center px-4" onclick="hideImageModal(event)">
+        <div class="w-full max-w-sm" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4">
+                <div id="imageModalTitle" class="text-white text-lg font-medium">装货单据</div>
+                <i class="fa fa-times text-white text-xl cursor-pointer" onclick="hideImageModal()"></i>
+            </div>
+            <div class="bg-white rounded-xl p-4">
+                <div id="imageModalContent">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 费用详情弹窗 -->
+    <div id="costDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center px-6" onclick="hideCostDetailModal(event)">
+        <div class="bg-white rounded-2xl p-5 max-w-sm w-full" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4">
+                <div id="costDetailTitle" class="text-gray-900 text-lg font-semibold">费用详情</div>
+                <i class="fa fa-times text-gray-500 text-xl cursor-pointer" onclick="hideCostDetailModal()"></i>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-4">
+                <div id="costDetailList" class="space-y-3">
+                </div>
+                <div class="flex justify-between items-center pt-4 mt-4 border-t border-gray-200">
+                    <span class="text-gray-900 text-base font-semibold">合计</span>
+                    <span id="costDetailTotal" class="text-costRed text-xl font-bold">¥150 元</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部任务栏模拟 -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-between items-center">
+        <div class="flex gap-4 items-center">
+            <div class="w-8 h-8 bg-green-600 rounded"></div>
+            <i class="fa fa-chrome text-blue-500 text-xl"></i>
+            <div class="w-8 h-8 bg-yellow-500 rounded flex items-center justify-center text-black font-bold">P</div>
+            <i class="fa fa-folder-open text-yellow-600 text-xl"></i>
+        </div>
+        <div class="flex gap-4 items-center">
+            <i class="fa fa-angle-up text-gray-500"></i>
+            <i class="fa fa-windows text-red-600 text-xl"></i>
+            <i class="fa fa-refresh text-gray-500"></i>
+            <span class="text-sm text-gray-600">英</span>
+            <i class="fa fa-wifi text-gray-600"></i>
+            <i class="fa fa-battery-full text-gray-600"></i>
+        </div>
+        <span class="absolute right-2 bottom-1 text-xs text-gray-400">20</span>
+    </div>
+
+    <script>
+        const regionData = {
+            "北京市": {"北京市": ["东城区", "西城区", "朝阳区", "海淀区", "丰台区", "石景山区", "通州区", "昌平区", "大兴区"]},
+            "上海市": {"上海市": ["黄浦区", "徐汇区", "长宁区", "静安区", "普陀区", "虹口区", "杨浦区", "浦东新区", "闵行区", "宝山区"]},
+            "天津市": {"天津市": ["和平区", "河东区", "河西区", "南开区", "河北区", "红桥区", "东丽区", "西青区", "津南区", "北辰区"]},
+            "重庆市": {"重庆市": ["渝中区", "江北区", "南岸区", "九龙坡区", "沙坪坝区", "大渡口区", "渝北区", "巴南区", "北碚区"]},
+            "广东省": {"广州市": ["天河区", "越秀区", "海珠区", "荔湾区", "白云区", "番禺区", "黄埔区", "花都区"], "深圳市": ["福田区", "罗湖区", "南山区", "宝安区", "龙岗区", "盐田区", "龙华区", "坪山区"], "东莞市": ["莞城区", "南城区", "东城区", "万江区"], "佛山市": ["禅城区", "南海区", "顺德区", "三水区", "高明区"], "珠海市": ["香洲区", "斗门区", "金湾区"]},
+            "江苏省": {"南京市": ["玄武区", "秦淮区", "建邺区", "鼓楼区", "浦口区", "栖霞区", "雨花台区", "江宁区"], "苏州市": ["姑苏区", "虎丘区", "吴中区", "相城区", "吴江区", "工业园区"], "无锡市": ["梁溪区", "锡山区", "惠山区", "滨湖区", "新吴区"], "常州市": ["天宁区", "钟楼区", "新北区", "武进区", "金坛区"], "南通市": ["崇川区", "港闸区", "通州区", "海门区"]},
+            "浙江省": {"杭州市": ["上城区", "下城区", "江干区", "拱墅区", "西湖区", "滨江区", "萧山区", "余杭区"], "宁波市": ["海曙区", "江北区", "北仑区", "镇海区", "鄞州区", "奉化区"], "温州市": ["鹿城区", "龙湾区", "瓯海区", "洞头区"], "嘉兴市": ["南湖区", "秀洲区"], "绍兴市": ["越城区", "柯桥区", "上虞区"]},
+            "山东省": {"济南市": ["历下区", "市中区", "槐荫区", "天桥区", "历城区", "长清区"], "青岛市": ["市南区", "市北区", "李沧区", "崂山区", "城阳区", "黄岛区", "即墨区"], "烟台市": ["芝罘区", "福山区", "牟平区", "莱山区", "蓬莱区"], "潍坊市": ["潍城区", "寒亭区", "坊子区", "奎文区"], "临沂市": ["兰山区", "罗庄区", "河东区"]},
+            "河南省": {"郑州市": ["中原区", "二七区", "管城回族区", "金水区", "上街区", "惠济区"], "洛阳市": ["老城区", "西工区", "瀍河回族区", "涧西区", "吉利区", "洛龙区"], "开封市": ["龙亭区", "顺河回族区", "鼓楼区", "禹王台区", "祥符区"], "新乡市": ["红旗区", "卫滨区", "凤泉区", "牧野区"], "许昌市": ["魏都区", "建安区"]},
+            "四川省": {"成都市": ["锦江区", "青羊区", "金牛区", "武侯区", "成华区", "龙泉驿区", "青白江区", "新都区", "温江区"], "绵阳市": ["涪城区", "游仙区", "安州区"], "德阳市": ["旌阳区", "罗江区"], "宜宾市": ["翠屏区", "南溪区", "叙州区"], "泸州市": ["江阳区", "纳溪区", "龙马潭区"]},
+            "湖北省": {"武汉市": ["江岸区", "江汉区", "硚口区", "汉阳区", "武昌区", "青山区", "洪山区", "东西湖区"], "宜昌市": ["西陵区", "伍家岗区", "点军区", "猇亭区", "夷陵区"], "襄阳市": ["襄城区", "樊城区", "襄州区"], "黄冈市": ["黄州区", "团风县", "红安县"], "荆州市": ["沙市区", "荆州区"]},
+            "湖南省": {"长沙市": ["芙蓉区", "天心区", "岳麓区", "开福区", "雨花区", "望城区", "长沙县"], "株洲市": ["荷塘区", "芦淞区", "石峰区", "天元区"], "湘潭市": ["雨湖区", "岳塘区"], "衡阳市": ["珠晖区", "雁峰区", "石鼓区", "蒸湘区", "南岳区"], "岳阳市": ["岳阳楼区", "云溪区", "君山区"]},
+            "福建省": {"福州市": ["鼓楼区", "台江区", "仓山区", "马尾区", "晋安区", "长乐区"], "厦门市": ["思明区", "海沧区", "湖里区", "集美区", "同安区", "翔安区"], "泉州市": ["鲤城区", "丰泽区", "洛江区", "泉港区"], "漳州市": ["芗城区", "龙文区", "龙海区"], "莆田市": ["城厢区", "涵江区", "荔城区", "秀屿区"]},
+            "陕西省": {"西安市": ["新城区", "碑林区", "莲湖区", "灞桥区", "未央区", "雁塔区", "阎良区", "临潼区", "长安区"], "咸阳市": ["秦都区", "杨陵区", "渭城区"], "宝鸡市": ["渭滨区", "金台区", "陈仓区"], "渭南市": ["临渭区", "华州区"], "榆林市": ["榆阳区", "横山区"]},
+            "安徽省": {"合肥市": ["瑶海区", "庐阳区", "蜀山区", "包河区", "肥东县", "肥西县"], "芜湖市": ["镜湖区", "弋江区", "鸠江区", "三山区"], "蚌埠市": ["龙子湖区", "蚌山区", "禹会区", "淮上区"], "马鞍山市": ["花山区", "雨山区", "博望区"], "安庆市": ["迎江区", "大观区", "宜秀区"]},
+            "江西省": {"南昌市": ["东湖区", "西湖区", "青云谱区", "湾里区", "青山湖区", "新建区"], "九江市": ["濂溪区", "浔阳区", "柴桑区"], "赣州市": ["章贡区", "南康区", "赣县区"], "上饶市": ["信州区", "广丰区", "广信区"], "宜春市": ["袁州区"]},
+            "广西壮族自治区": {"南宁市": ["兴宁区", "青秀区", "江南区", "西乡塘区", "良庆区", "邕宁区"], "柳州市": ["城中区", "鱼峰区", "柳南区", "柳北区", "柳江区"], "桂林市": ["秀峰区", "叠彩区", "象山区", "七星区", "雁山区", "临桂区"], "梧州市": ["万秀区", "长洲区", "龙圩区"], "北海市": ["海城区", "银海区", "铁山港区"]},
+            "云南省": {"昆明市": ["五华区", "盘龙区", "官渡区", "西山区", "东川区", "呈贡区"], "大理白族自治州": ["大理市", "漾濞彝族自治县", "祥云县"], "丽江市": ["古城区", "玉龙纳西族自治县"], "曲靖市": ["麒麟区", "沾益区", "马龙区"], "玉溪市": ["红塔区", "江川区"]},
+            "贵州省": {"贵阳市": ["南明区", "云岩区", "花溪区", "乌当区", "白云区", "观山湖区"], "遵义市": ["红花岗区", "汇川区", "播州区"], "六盘水市": ["钟山区", "六枝特区", "水城区"], "安顺市": ["西秀区", "平坝区"], "毕节市": ["七星关区"]},
+            "海南省": {"海口市": ["秀英区", "龙华区", "琼山区", "美兰区"], "三亚市": ["海棠区", "吉阳区", "天涯区", "崖州区"], "三沙市": ["西沙区", "南沙区"], "儋州市": ["那大镇", "白马井镇"]},
+            "甘肃省": {"兰州市": ["城关区", "七里河区", "西固区", "安宁区", "红古区"], "天水市": ["秦州区", "麦积区"], "嘉峪关市": ["新华街道", "雄关街道", "钢城街道"], "金昌市": ["金川区", "永昌县"], "酒泉市": ["肃州区", "玉门市"]},
+            "青海省": {"西宁市": ["城东区", "城中区", "城西区", "城北区", "湟中区"], "海东市": ["乐都区", "平安区"], "海北藏族自治州": ["门源回族自治县", "祁连县", "海晏县", "刚察县"]},
+            "内蒙古自治区": {"呼和浩特市": ["新城区", "回民区", "玉泉区", "赛罕区", "土默特左旗"], "包头市": ["东河区", "昆都仑区", "青山区", "石拐区", "白云鄂博矿区", "九原区"], "鄂尔多斯市": ["东胜区", "康巴什区", "达拉特旗"], "赤峰市": ["红山区", "元宝山区", "松山区"], "通辽市": ["科尔沁区", "霍林郭勒市"]},
+            "宁夏回族自治区": {"银川市": ["兴庆区", "西夏区", "金凤区", "永宁县", "贺兰县"], "石嘴山市": ["大武口区", "惠农区", "平罗县"], "吴忠市": ["利通区", "红寺堡区", "青铜峡市"], "固原市": ["原州区", "西吉县", "隆德县", "泾源县", "彭阳县"], "中卫市": ["沙坡头区", "中宁县", "海原县"]},
+            "新疆维吾尔自治区": {"乌鲁木齐市": ["天山区", "沙依巴克区", "新市区", "水磨沟区", "头屯河区", "达坂城区", "米东区"], "喀什地区": ["喀什市", "疏附县", "疏勒县", "英吉沙县", "泽普县", "莎车县"], "伊犁哈萨克自治州": ["伊宁市", "奎屯市", "霍尔果斯市"], "阿克苏地区": ["阿克苏市", "温宿县", "库车市"], "昌吉回族自治州": ["昌吉市", "阜康市", "呼图壁县"]},
+            "西藏自治区": {"拉萨市": ["城关区", "堆龙德庆区", "达孜区", "林周县", "当雄县", "尼木县", "曲水县", "墨竹工卡县"], "日喀则市": ["桑珠孜区", "南木林县", "江孜县"], "昌都市": ["卡若区", "察雅县", "左贡县"], "林芝市": ["巴宜区", "工布江达县", "米林市"]},
+            "黑龙江省": {"哈尔滨市": ["道里区", "南岗区", "道外区", "平房区", "松北区", "香坊区", "呼兰区", "阿城区"], "齐齐哈尔市": ["龙沙区", "建华区", "铁锋区", "昂昂溪区", "富拉尔基区"], "牡丹江市": ["东安区", "阳明区", "爱民区", "西安区"], "大庆市": ["萨尔图区", "龙凤区", "让胡路区", "红岗区", "大同区"], "佳木斯市": ["向阳区", "前进区", "东风区", "郊区"]},
+            "吉林省": {"长春市": ["南关区", "宽城区", "朝阳区", "二道区", "绿园区", "双阳区", "九台区"], "吉林市": ["昌邑区", "龙潭区", "船营区", "丰满区"], "四平市": ["铁西区", "铁东区"], "延边朝鲜族自治州": ["延吉市", "图们市", "敦化市", "珲春市"], "通化市": ["东昌区", "二道江区"]},
+            "辽宁省": {"沈阳市": ["和平区", "沈河区", "大东区", "皇姑区", "铁西区", "苏家屯区", "浑南区", "沈北新区", "于洪区"], "大连市": ["中山区", "西岗区", "沙河口区", "甘井子区", "旅顺口区", "金州区", "普兰店区"], "鞍山市": ["铁东区", "铁西区", "立山区", "千山区"], "抚顺市": ["新抚区", "东洲区", "望花区", "顺城区"], "本溪市": ["平山区", "溪湖区", "明山区", "南芬区"]},
+            "河北省": {"石家庄市": ["长安区", "桥西区", "新华区", "井陉矿区", "裕华区", "藁城区", "鹿泉区", "栾城区"], "唐山市": ["路南区", "路北区", "古冶区", "开平区", "丰南区", "丰润区", "曹妃甸区"], "秦皇岛市": ["海港区", "山海关区", "北戴河区", "抚宁区"], "保定市": ["竞秀区", "莲池区", "满城区", "清苑区", "徐水区"], "邯郸市": ["邯山区", "丛台区", "复兴区", "峰峰矿区", "肥乡区", "永年区"]},
+            "山西省": {"太原市": ["小店区", "迎泽区", "杏花岭区", "尖草坪区", "万柏林区", "晋源区"], "大同市": ["新荣区", "平城区", "云冈区", "云州区"], "运城市": ["盐湖区", "临猗县", "万荣县"], "临汾市": ["尧都区", "曲沃县", "翼城县"], "晋中市": ["榆次区", "太谷区"]},
+            "香港特别行政区": {"香港岛": ["中西区", "湾仔区", "东区", "南区"], "九龙": ["油尖旺区", "深水埗区", "九龙城区", "黄大仙区", "观塘区"], "新界": ["荃湾区", "屯门区", "元朗区", "北区", "大埔区", "沙田区", "西贡区", "葵青区", "离岛区"]},
+            "澳门特别行政区": {"澳门半岛": ["花地玛堂区", "花王堂区", "望德堂区", "大堂区", "风顺堂区"], "离岛": ["嘉模堂区", "路凼填海区", "圣方济各堂区"]},
+            "台湾省": {"台北市": ["中正区", "大同区", "中山区", "松山区", "大安区", "万华区", "信义区", "士林区", "北投区", "内湖区", "南港区", "文山区"], "高雄市": ["楠梓区", "左营区", "鼓山区", "三民区", "盐埕区", "前金区", "新兴区", "苓雅区", "前镇区", "旗津区", "小港区", "凤山区"], "台中市": ["中区", "东区", "南区", "西区", "北区", "西屯区", "南屯区", "北屯区", "太平区", "大里区"], "台南市": ["中西区", "东区", "南区", "北区", "安平区", "安南区", "永康区"], "新北市": ["板桥区", "三重区", "中和区", "永和区", "新庄区", "新店区", "土城区", "芦洲区", "树林区", "汐止区"]}
+        };
+
+        const plateData = [
+            "京A12345",
+            "沪B67890",
+            "粤C11111",
+            "浙D22222",
+            "苏E33333",
+            "鲁F44444",
+            "川A55555",
+            "冀R66666"
+        ];
+
+        function initPlateSelect(pagePrefix) {
+            const selectEl = document.getElementById(pagePrefix + '-plate');
+            if (!selectEl) return;
+
+            selectEl.innerHTML = '<option value="">请选择车牌号</option>';
+            plateData.forEach(function(plate) {
+                const option = document.createElement('option');
+                option.value = plate;
+                option.textContent = plate;
+                selectEl.appendChild(option);
+            });
+        }
+
+        let pageHistory = ['dindan'];
+        let currentPage = 'dindan';
+
+        function navigateTo(pageName) {
+            const currentEl = document.getElementById('page-' + currentPage);
+            const targetEl = document.getElementById('page-' + pageName);
+            if (currentEl) currentEl.classList.remove('active');
+            if (targetEl) {
+                targetEl.classList.add('active');
+                pageHistory.push(pageName);
+                currentPage = pageName;
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function goBack() {
+            if (pageHistory.length > 1) {
+                pageHistory.pop();
+                const prevPage = pageHistory[pageHistory.length - 1];
+                const currentEl = document.getElementById('page-' + currentPage);
+                const prevEl = document.getElementById('page-' + prevPage);
+                if (currentEl) currentEl.classList.remove('active');
+                if (prevEl) {
+                    prevEl.classList.add('active');
+                    currentPage = prevPage;
+                    window.scrollTo(0, 0);
+                }
+            }
+        }
+
+        function initCascade(pagePrefix, direction) {
+            const provinceSelect = document.getElementById(pagePrefix + '-' + direction + 'Province');
+            const citySelect = document.getElementById(pagePrefix + '-' + direction + 'City');
+            const districtSelect = document.getElementById(pagePrefix + '-' + direction + 'District');
+
+            if (!provinceSelect || !citySelect || !districtSelect) return;
+
+            for (const province in regionData) {
+                const option = document.createElement('option');
+                option.value = province;
+                option.textContent = province;
+                provinceSelect.appendChild(option);
+            }
+
+            provinceSelect.addEventListener('change', function() {
+                const province = this.value;
+                citySelect.innerHTML = '<option value="">请选择城市</option>';
+                districtSelect.innerHTML = '<option value="">请选择区县</option>';
+                if (province && regionData[province]) {
+                    for (const city in regionData[province]) {
+                        const option = document.createElement('option');
+                        option.value = city;
+                        option.textContent = city;
+                        citySelect.appendChild(option);
+                    }
+                }
+            });
+
+            citySelect.addEventListener('change', function() {
+                const province = provinceSelect.value;
+                const city = this.value;
+                districtSelect.innerHTML = '<option value="">请选择区县</option>';
+                if (province && city && regionData[province][city]) {
+                    regionData[province][city].forEach(function(district) {
+                        const option = document.createElement('option');
+                        option.value = district;
+                        option.textContent = district;
+                        districtSelect.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        function showAmortizeTip() {
+            document.getElementById('amortizeModal').classList.remove('hidden');
+        }
+
+        function hideAmortizeTip(event) {
+            if (!event || event.target.id === 'amortizeModal') {
+                document.getElementById('amortizeModal').classList.add('hidden');
+            }
+        }
+
+        function showImageModal(type) {
+            const modal = document.getElementById('imageModal');
+            const title = document.getElementById('imageModalTitle');
+            const content = document.getElementById('imageModalContent');
+
+            if (type === 'loading') {
+                title.textContent = '装货单据（32.5 吨）';
+                content.innerHTML = `
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-file-image-o text-gray-400 text-4xl"></i>
+                        </div>
+                        <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-plus text-gray-400 text-2xl"></i>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'unloading') {
+                title.textContent = '卸货单据（32.3 吨）';
+                content.innerHTML = `
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-file-image-o text-gray-400 text-4xl"></i>
+                        </div>
+                        <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fa fa-plus text-gray-400 text-2xl"></i>
+                        </div>
+                    </div>
+                `;
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function hideImageModal(event) {
+            if (!event || event.target.id === 'imageModal') {
+                document.getElementById('imageModal').classList.add('hidden');
+            }
+        }
+
+        function showCostDetailModal(type) {
+            const modal = document.getElementById('costDetailModal');
+            const title = document.getElementById('costDetailTitle');
+            const listEl = document.getElementById('costDetailList');
+            const totalEl = document.getElementById('costDetailTotal');
+
+            const costData = {
+                driver: {
+                    name: '司机报销费用',
+                    total: '¥150 元',
+                    items: [
+                        { name: '劳务费', amount: '¥80 元' },
+                        { name: '信息开票费', amount: '¥40 元' },
+                        { name: '装卸过磅费', amount: '¥30 元' }
+                    ]
+                },
+                other: {
+                    name: '订单其他费用',
+                    total: '¥88 元',
+                    items: [
+                        { name: '劳务费', amount: '¥30 元' },
+                        { name: '充电费', amount: '¥28 元' },
+                        { name: '加油费', amount: '¥30 元' }
+                    ]
+                },
+                amortization: {
+                    name: '月度摊销费用',
+                    total: '¥68 元',
+                    items: [
+                        { name: '修车费', amount: '¥30 元' },
+                        { name: '税费保险', amount: '¥28 元' },
+                        { name: '其他', amount: '¥10 元' }
+                    ]
+                }
+            };
+
+            const data = costData[type];
+            if (data) {
+                title.textContent = data.name;
+                totalEl.textContent = data.total;
+
+                let listHtml = '';
+                data.items.forEach(function(item, index) {
+                    const borderClass = index < data.items.length - 1 ? 'border-b border-gray-200 pb-3' : '';
+                    listHtml += `
+                        <div class="flex justify-between items-center ${borderClass}">
+                            <span class="text-gray-600 text-base">${item.name}</span>
+                            <span class="text-costRed text-base font-medium">${item.amount}</span>
+                        </div>
+                    `;
+                });
+                listEl.innerHTML = listHtml;
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function hideCostDetailModal(event) {
+            if (!event || event.target.id === 'costDetailModal') {
+                document.getElementById('costDetailModal').classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const pages = [
+                'dindan', 'total-revenue', 'total-freight', 'total-cost',
+                'driver-reimburse', 'labor-cost', 'order-other-cost',
+                'charging-cost', 'monthly-amortization', 'repair-cost'
+            ];
+            pages.forEach(function(page) {
+                initCascade(page, 'send');
+                initCascade(page, 'receive');
+                initPlateSelect(page);
+            });
+        });
+    </script>
+</body>
+</html>
